@@ -1,0 +1,29 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "start",
+			"problemMatcher": [],
+			"label": "start",
+			"detail": "cross-env NODE_ENV=development webpack-dev-server --config webpack/react.dev.js"
+		},
+		{
+			"type": "npm",
+			"script": "build.yinhe",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "npm: build.yinhe",
+			"detail": "cross-env NODE_ENV=production PRODUCT=yinhe webpack --config webpack/react.prod.js"
+		},
+		{
+			"type": "process",
+			"command": "gen.cmd",
+			"group": "build",
+			"label": "生成grpcweb",
+			"options": {
+				"cwd": "${workspaceFolder}/proto"
+			}
+		},
+	]
+}
