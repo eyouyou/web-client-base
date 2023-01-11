@@ -1,10 +1,12 @@
 import loadable, { lazy } from "@loadable/component"
 import React, { Suspense, useContext, useEffect } from "react"
 import { Navigate } from "react-router-dom"
-import { RouteItem } from "~/models/route"
+import { RouteAccess, RouteItem } from "~/models/route"
 import { Permission } from "~/models/permission"
 import { UserContext } from "~/context/user_context"
 import { useKeepControl } from "~/components/keep_outlets"
+import KeepRouteConnect from "~/components/keep_route"
+import { VisibilityRef } from "~/common/hooks"
 
 interface RouteProperty {
     route: RouteItem,
@@ -32,20 +34,25 @@ const RouteToElement = ({ route, children }: RouteProperty) => {
 }
 
 const PureRouteElement = ({ route, children }: RouteProperty) => {
-    const elementRef = React.useRef({})
+    const elementRef = React.useRef<VisibilityRef>(null)
     const router = useKeepControl()
 
     if (route.redirect != null) {
         return (<Navigate to={route.redirect} replace />)
     }
     if (children != null) {
-        return (<div key={route.name}>{children}</div>)
+        return (<div key={route.key}>{children}</div>)
     }
-    const cc = import(`~/${route.component}`).then(({ default: Component }) => {
+    const url = route.component
+
+    const cc = import(`@/${url}`).then(({ default: Component }) => {
         return {
-            default: React.forwardRef((props, ref) => {
-                return (<Component {...Component.$$typeof != null && Component.$$typeof.description == "react.forward_ref" ? { ref: ref } : {}} {...props} route={route} />)
-            })
+            default: KeepRouteConnect<any>(React.forwardRef((props, ref: React.Ref<RouteAccess>) => {
+                React.useImperativeHandle(ref, () => ({
+                    getRoute: () => route
+                }))
+                return (<Component {...Component.$$typeof != null && Component.$$typeof.description == "react.forward_ref" ? { ref: ref } : {}} {...props} {...route.properties} route={route} />)
+            }))
         }
     })
 
@@ -53,7 +60,6 @@ const PureRouteElement = ({ route, children }: RouteProperty) => {
     if (router) {
         router.addPageRef(route, elementRef)
     }
-
     return (
         <Loadable ref={elementRef} key={route.absolutePath} />
     )

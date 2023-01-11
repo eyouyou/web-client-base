@@ -1,14 +1,11 @@
 import { Col, Row } from 'antd'
 import React, { useEffect } from 'react'
-import { authClient } from '~/glue'
-import { LoginRequest } from '~/grpc/base_pb'
-import { getBlazerConfig } from '~/models/external'
-import { webLocalStorage } from '~/store'
+import { getBuildConfig } from '~/models/external'
 import Ad from './ad'
 import LoginMain from './login'
 
 const Login = () => {
-    const config = getBlazerConfig()
+    const config = getBuildConfig()
 
     useEffect(() => {
         // webLocalStorage.setItem('a', { value: 1 })

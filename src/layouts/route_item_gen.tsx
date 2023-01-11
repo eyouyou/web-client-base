@@ -1,47 +1,46 @@
 import React from "react"
-import { Navigate, Route, Routes } from "react-router-dom"
+import { createHashRouter, RouteObject, RouterProvider } from "react-router-dom"
 import RouteToElement from "./route_element"
-import { hasHome, RouteItem } from "~/models/route"
+import { RouteItem } from "~/models/route"
 import path from "path-browserify"
-/**不暴露根 */
-interface RouteProperty {
+
+const NestRouteFactory = (parent: RouteItem, items: RouteItem[]): RouteObject => {
+    items.forEach(route => {
+        route.absolutePath = path.join(parent.absolutePath, route.path)
+    })
+    return {
+        path: parent.path, element: <RouteToElement route={parent} />,
+        children: items.distinct((item) => item.key).map((route: RouteItem) => {
+            return route.routes != null ? NestRouteFactory(route, route.routes)
+                : { path: route.path, element: <RouteToElement route={route} /> }
+        })
+    }
+}
+
+interface RouteProps {
     routes: RouteItem[]
 }
 
-/**解决 [`IndexRoute`] 不能拥有孩子的问题 */
-const Redirect = (to: RouteItem) => {
-    return (<Route key="$$$home$$$" index element={<RouteToElement route={to}><Navigate to={to.path} /></RouteToElement>} />)
-}
+/**不暴露根 自带根*/
+const RouteFactory = ({ routes: children }: RouteProps) => {
+    const [router, setRouter] = React.useState<any>()
+    React.useEffect(() => {
+        const hash = [NestRouteFactory(new RouteItem(
+            "root",
+            "/",
+            "layouts/root",
+            {},
+            children,
+            "/"
+        ), children)]
 
+        const tree = createHashRouter(hash)
+        setRouter(tree)
+    }, [])
 
-const NestRouteFactory = (parent: RouteItem, items: RouteItem[]) => {
-    return (<Route key={parent.name} path={parent.path} element={<RouteToElement route={parent} ></RouteToElement>} >
-        {[...items.map((route, index) => {
-            route.absolutePath = path.join(parent.absolutePath!, route.path)
-            route.hasHome = function (): boolean {
-                return hasHome(this)
-            }
-            return route.routes != null ? NestRouteFactory(route, route.routes)
-                : <Route key={route.name} path={route.path} element={<RouteToElement route={route} />} />
-
-        })]}
-    </Route>)
-}
-
-
-const RouteFactory = ({ routes }: RouteProperty) => {
-    const tree = NestRouteFactory({
-        name: "root",
-        path: "/",
-        component: "layouts/blank",
-        absolutePath: "/",
-        hasHome: function (): boolean {
-            return hasHome(this)
-        },
-        routes: routes
-    }, routes)
-    console.log(tree)
-    return (<Routes>{tree}</Routes>)
+    return (
+        router ? <RouterProvider router={router}></RouterProvider> : <></>
+    )
 }
 
 export default RouteFactory

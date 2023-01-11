@@ -21,14 +21,34 @@ export function useDefaultRoute(route: RouteItem): [string | undefined, React.Di
 
     return [currentKey, setCurrentKey]
 }
+export interface VisibilityRef {
+    /**
+     * 不应包含初始化逻辑
+     */
+    onVisibilityChanged: (value: boolean) => void
+}
 
+export interface RefreshRef {
+    refresh: () => void
+}
 
-export function useVisibilityChanged(ref: any, onVisibilityChanged: (value: boolean) => void) {
+export function useVisibilityChanged(ref: React.Ref<VisibilityRef>, onVisibilityChanged: (value: boolean, initial?: boolean) => void, initial = false) {
     React.useImperativeHandle(ref, () => ({
-        onVisibilityChange: onVisibilityChanged
+        onVisibilityChanged: (v) => onVisibilityChanged(v, false)
     }))
 
     React.useEffect(() => {
-        onVisibilityChanged(true)
+        if (initial) {
+            onVisibilityChanged(true, true)
+        }
+        return () => {
+            onVisibilityChanged(false, false)
+        }
     }, [])
+}
+
+export function useRefreshCallback(ref: React.Ref<RefreshRef>, refresh: () => void) {
+    React.useImperativeHandle(ref, () => ({
+        refresh: refresh
+    }))
 }

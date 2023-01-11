@@ -30,14 +30,6 @@
             }
         ],
         // 对象的..扩展
-        "@babel/plugin-proposal-object-rest-spread",
-        [
-            "import",
-            {
-                "libraryName": "antd",
-                "libraryDirectory": "es",
-                "style": true
-            }
-        ]
+        "@babel/plugin-proposal-object-rest-spread"
     ]
 }

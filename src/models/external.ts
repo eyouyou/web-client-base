@@ -1,13 +1,13 @@
 /**编译外部配置 */
 import { RouteItem } from './route'
 
-export interface BlazerConfig {
+export interface BuildConfig {
     routes: RouteItem[]
     title?: string,
     icon: string,
 }
 
 
-export function getBlazerConfig() {
-    return BLAZER as BlazerConfig
+export function getBuildConfig() {
+    return BUILD_DATA as BuildConfig
 }
